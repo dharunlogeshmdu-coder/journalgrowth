@@ -883,7 +883,58 @@ let editModalOpen = false;
   localStorage.setItem(IMPORT_KEY, '1');
 })();
 
-// ════ DISCIPLINE GUARD ════
+// ════ IMPORT SEPT 2026 LEDGER TRADES ════
+(function importSept2026Trades(){
+  const IMPORT_KEY = 'sept2026_ledger_imported_v1';
+  if(localStorage.getItem(IMPORT_KEY)) return; // already imported once
+
+  const septTrades = [
+    {
+      id: 1757308440001, date: '2026-09-08', symbol: 'NIFTY', direction: 'Long',
+      capital: 1900, pnl: 240, qty: 1,
+      entryTime: '11:34', exitTime: '12:01',
+      setup: 'break out', emotion: 'FOMO',
+      notes: '', ssBefore: '', ssAfter: ''
+    },
+    {
+      id: 1757308440002, date: '2026-09-08', symbol: 'NIFTY', direction: 'Short',
+      capital: 1600, pnl: 75, qty: 1,
+      entryTime: '09:15', exitTime: '09:17',
+      setup: 'morning brackout idea', emotion: 'Fearful',
+      notes: '', ssBefore: '', ssAfter: ''
+    },
+    {
+      id: 1757222040001, date: '2026-09-07', symbol: 'NIFTY', direction: 'Long',
+      capital: 2000, pnl: -200, qty: 1,
+      entryTime: '13:54', exitTime: '14:00',
+      setup: 'break out', emotion: 'FOMO',
+      notes: '', ssBefore: '', ssAfter: ''
+    },
+    {
+      id: 1757222040002, date: '2026-09-07', symbol: 'NIFTY', direction: 'Long',
+      capital: 2000, pnl: -200, qty: 1,
+      entryTime: '11:55', exitTime: '12:20',
+      setup: 'trend line', emotion: 'FOMO',
+      notes: '', ssBefore: '', ssAfter: ''
+    },
+    {
+      id: 1757222040003, date: '2026-09-07', symbol: 'NIFTY', direction: 'Short',
+      capital: 2110, pnl: -240, qty: 1,
+      entryTime: '11:41', exitTime: '11:48',
+      setup: 'break out', emotion: 'FOMO',
+      notes: '', ssBefore: '', ssAfter: ''
+    }
+  ];
+
+  // Merge: skip any that already exist (same date+symbol+entryTime)
+  const existing = new Set(trades.map(t => t.date+'|'+t.symbol+'|'+t.entryTime));
+  const toAdd = septTrades.filter(t => !existing.has(t.date+'|'+t.symbol+'|'+t.entryTime));
+  if(toAdd.length){
+    trades = [...trades, ...toAdd];
+    localStorage.setItem('tl_trades_v4', JSON.stringify(trades));
+  }
+  localStorage.setItem(IMPORT_KEY, '1');
+})();
 const DISCIPLINE_MESSAGES = [
   {title:'Overtrading Alert', msg:"This is trade #{n} today. Maybe it's about to go wrong — the setups that make you money rarely show up more than twice in one session. Do not take this trade unless it's truly A+."},
   {title:'Slow Down', msg:"You've already fired {n} trades today. Past two trades, most of what looks like a 'setup' is just boredom or the urge to get even. Walk away for 15 minutes before the next click."},
