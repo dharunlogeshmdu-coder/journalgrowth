@@ -2,7 +2,10 @@
    Handles offline caching so the "installed" app opens even without a
    network connection, and keeps itself up to date automatically. */
 
-const CACHE_NAME = 'dharun-records-v1';
+// Bump this string on every deploy (v1 -> v2 -> v3 ...). Changing it is what
+// makes the browser treat this as a NEW service worker and fetch fresh files
+// instead of reusing whatever was cached before.
+const CACHE_NAME = 'dharun-records-v2';
 
 // Add/adjust paths here to match your actual deployed file names.
 const PRECACHE_URLS = [
@@ -37,6 +40,12 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Let the page force this worker to activate immediately instead of
+// waiting for all tabs to close (used by install-app.js's update flow).
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
+});
+
 // Fetch: network-first for navigation (so you always get the latest
 // journal build when online), cache-first fallback for everything else
 // (and for offline navigation).
@@ -46,7 +55,10 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      // { cache: 'no-store' } bypasses the BROWSER's own HTTP cache, not just
+      // this service worker's cache — without it, GitHub Pages' cache headers
+      // can make fetch() silently return a stale copy even in "network-first" mode.
+      fetch(request, { cache: 'no-store' })
         .then((response) => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));

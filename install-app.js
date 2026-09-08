@@ -23,12 +23,43 @@
 (function () {
   'use strict';
 
-  // ---- 1. Service worker registration -------------------------------
+  // ---- 1. Service worker registration + auto-update ------------------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./service-worker.js')
-        .then((reg) => console.log('[Dharun Records] service worker registered:', reg.scope))
+        .then((reg) => {
+          console.log('[Dharun Records] service worker registered:', reg.scope);
+
+          // Check GitHub for a newer service-worker.js every time the app
+          // is opened, instead of waiting on the browser's ~24h check cycle.
+          reg.update();
+
+          // If an update was already waiting from a previous visit, activate
+          // it now.
+          if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+
+          // A new version was found while this tab was open — tell it to
+          // activate as soon as it's installed.
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage('SKIP_WAITING');
+              }
+            });
+          });
+        })
         .catch((err) => console.warn('[Dharun Records] service worker failed:', err));
+
+      // Once the new worker takes control, reload once so the page picks up
+      // the fresh code instead of sitting on the old cached version.
+      let refreshed = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshed) return;
+        refreshed = true;
+        window.location.reload();
+      });
     });
   }
 
