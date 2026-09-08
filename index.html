@@ -440,6 +440,7 @@ canvas{width:100%!important}
     <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value neutral" id="stat-wr">—</div><div class="stat-sub" id="stat-wl">0W / 0L</div></div>
     <div class="stat-card"><div class="stat-label">Profit Factor</div><div class="stat-value neutral" id="stat-pf">—</div><div class="stat-sub">Gross P / L</div></div>
     <div class="stat-card"><div class="stat-label">Net Return</div><div class="stat-value neutral" id="stat-ret">—</div><div class="stat-sub">On total capital</div></div>
+    <div class="stat-card"><div class="stat-label">Recovery Needed</div><div class="stat-value neutral" id="stat-recovery">—</div><div class="stat-sub" id="stat-recovery-sub">Profit % to breakeven</div></div>
   </div>
 
   <!-- ── YESTERDAY VS TODAY ── -->
@@ -1326,10 +1327,11 @@ function renderStats(){
   document.getElementById('stat-cap-sub').textContent='Base: '+fmtINR(totalCap);
 
   if(!n){
-    ['stat-gprofit','stat-gloss','stat-charges','stat-pnl','stat-wr','stat-pf','stat-ret'].forEach(id=>{
+    ['stat-gprofit','stat-gloss','stat-charges','stat-pnl','stat-wr','stat-pf','stat-ret','stat-recovery'].forEach(id=>{
       const el=document.getElementById(id); if(el){el.textContent='—';el.className='stat-value neutral';}
     });
     ['stat-gprofit-sub','stat-wl'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='0';});
+    document.getElementById('stat-recovery-sub').textContent='Profit % to breakeven';
     document.getElementById('bc-per').textContent='₹'+charge;
     document.getElementById('bc-total').textContent='₹0';
     document.getElementById('bc-count').textContent='0';
@@ -1372,6 +1374,24 @@ function renderStats(){
   document.getElementById('stat-pf').textContent=pf;
   const re=document.getElementById('stat-ret');
   re.textContent=ret; re.className='stat-value '+(netPnl>0?'up':netPnl<0?'down':'neutral');
+
+  // Recovery Needed: % profit required on current capital to get back to breakeven (base capital)
+  const recEl=document.getElementById('stat-recovery');
+  const recSubEl=document.getElementById('stat-recovery-sub');
+  if(netPnl<0 && currentCap>0){
+    const recoveryPct=((Math.abs(netPnl)/currentCap)*100).toFixed(2);
+    recEl.textContent='+'+recoveryPct+'%';
+    recEl.className='stat-value down';
+    recSubEl.textContent='To recover '+fmtINR(Math.abs(netPnl));
+  } else if(netPnl>0){
+    recEl.textContent='0%';
+    recEl.className='stat-value up';
+    recSubEl.textContent='Already profitable';
+  } else {
+    recEl.textContent='0%';
+    recEl.className='stat-value neutral';
+    recSubEl.textContent='At breakeven';
+  }
 
   document.getElementById('bc-per').textContent='₹'+charge;
   document.getElementById('bc-total').textContent=fmtINR(totalCharges);
