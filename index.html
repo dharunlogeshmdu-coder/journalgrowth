@@ -1408,7 +1408,11 @@ function renderStats(){
   const capEl=document.getElementById('stat-cap');
   capEl.textContent=fmtINR(currentCap);
   capEl.className='stat-value '+(currentCap>totalCap?'up':currentCap<totalCap?'down':'neutral');
-  document.getElementById('stat-cap-sub').textContent='Base: '+fmtINR(totalCap)+(netPnl>=0?' +':' ')+fmtINR(netPnl).replace('₹','')+' P&L';
+  document.getElementById('stat-cap-sub').innerHTML=
+    'Base '+fmtINR(totalCap)+
+    ' · <span style="color:var(--green)">'+fmtSgn(grossProfit)+'</span>'+
+    ' · <span style="color:var(--red)">'+fmtSgn(grossLoss)+'</span>'+
+    ' · <span style="color:var(--amber)">-'+fmtINR(totalCharges)+'</span> chg';
 
   const gl=document.getElementById('stat-gloss');
   gl.textContent=fmtINR(grossLoss); gl.className='stat-value '+(grossLoss<0?'down':'neutral');
