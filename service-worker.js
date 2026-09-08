@@ -5,12 +5,12 @@
 // Bump this string on every deploy (v1 -> v2 -> v3 ...). Changing it is what
 // makes the browser treat this as a NEW service worker and fetch fresh files
 // instead of reusing whatever was cached before.
-const CACHE_NAME = 'dharun-records-v2';
+const CACHE_NAME = 'dharun-records-v3';
 
 // Add/adjust paths here to match your actual deployed file names.
 const PRECACHE_URLS = [
   './',
-  './trading-journal.html',
+  './index.html',
   './manifest.json',
   './icons/icon-16.png',
   './icons/icon-32.png',
@@ -64,7 +64,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match(request).then((r) => r || caches.match('./trading-journal.html')))
+        .catch(() => caches.match(request).then((r) => r || caches.match('./index.html')))
     );
     return;
   }

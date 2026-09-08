@@ -2,7 +2,7 @@
   "name": "Dharun Records - Trading Journal",
   "short_name": "Dharun Records",
   "description": "Personal trading journal, analytics and risk tracker.",
-  "start_url": "./trading-journal.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
