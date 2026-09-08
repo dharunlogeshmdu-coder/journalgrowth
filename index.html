@@ -134,6 +134,57 @@ main{max-width:1400px;margin:0 auto;padding:1.8rem 2rem}
 .today-counter.warn{color:var(--amber);border-color:var(--amber);background:var(--amber-dim)}
 .today-counter.danger{color:var(--red);border-color:var(--red);background:var(--red-dim);animation:pulseDanger 1.6s ease-in-out infinite}
 .today-counter .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ── DAILY TARGET BADGE ── */
+.target-badge{display:flex;align-items:center;gap:7px;font-size:11px;font-family:var(--font-r);font-weight:600;letter-spacing:.5px;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold);border-radius:20px;padding:5px 12px}
+.target-badge.hit{color:var(--green);border-color:var(--green);background:var(--green-dim);animation:pulseTarget 1.8s ease-in-out infinite}
+@keyframes pulseTarget{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.35)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+.target-overlay{display:none;position:fixed;inset:0;background:rgba(2,10,6,.88);backdrop-filter:blur(10px);z-index:400;align-items:center;justify-content:center;padding:20px}
+.target-overlay.open{display:flex;animation:fadeUp .25s ease}
+.target-modal{width:100%;max-width:440px;background:linear-gradient(160deg,rgba(9,26,18,0.97),var(--surface2) 60%);border:1px solid rgba(16,185,129,0.45);border-radius:var(--radius-xl);padding:1.8rem 1.7rem 1.5rem;position:relative;box-shadow:0 0 60px rgba(16,185,129,0.2),0 20px 60px rgba(0,0,0,.5);text-align:center}
+.target-icon{width:52px;height:52px;border-radius:50%;background:var(--green-dim);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px}
+.target-title{font-family:var(--font-d);font-weight:800;font-size:1.15rem;color:var(--green);letter-spacing:-.3px;margin-bottom:8px}
+.target-msg{font-family:var(--font-r);font-size:14px;color:var(--text2);line-height:1.55;margin-bottom:16px}
+.target-stats{display:flex;justify-content:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.target-stat{background:var(--surface3);border:1px solid var(--border2);border-radius:10px;padding:8px 14px;min-width:84px}
+.target-stat .n{font-family:var(--font-d);font-weight:800;font-size:1.05rem;color:var(--green)}
+.target-stat .l{font-size:8.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;font-family:var(--font-r)}
+.btn-target-lock{background:linear-gradient(135deg,var(--green),var(--accent));color:#fff;border:none;border-radius:var(--radius);padding:11px 16px;font-family:var(--font-r);font-weight:700;font-size:13.5px;cursor:pointer;letter-spacing:.3px;box-shadow:0 4px 20px rgba(16,185,129,.35);width:100%}
+.btn-target-lock:hover{transform:translateY(-1px)}
+.btn-target-ack{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:var(--radius);padding:9px 16px;font-family:var(--font-r);font-weight:600;font-size:12.5px;cursor:pointer;width:100%;margin-top:8px}
+.btn-target-ack:hover{color:var(--text);border-color:var(--border3)}
+
+/* ── TODAY'S TARGET HERO CARD ── */
+.target-hero{background:linear-gradient(135deg,rgba(251,191,36,0.08),var(--surface2) 60%);border:1.5px solid var(--gold);border-radius:var(--radius-xl);padding:1.5rem 1.7rem;margin-bottom:1.5rem;position:relative;overflow:hidden;box-shadow:0 0 40px rgba(251,191,36,0.08)}
+.target-hero.hit{border-color:var(--green);background:linear-gradient(135deg,rgba(16,185,129,0.1),var(--surface2) 60%);box-shadow:0 0 50px rgba(16,185,129,0.15)}
+.target-hero-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.target-hero-label{font-family:var(--font-r);font-weight:800;font-size:13px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.target-hero.hit .target-hero-label{color:var(--green)}
+.target-hero-date{font-family:var(--font-m);font-size:11px;color:var(--muted)}
+.target-hero-main{display:flex;align-items:center;justify-content:center;gap:22px;margin-bottom:1rem;flex-wrap:wrap}
+.target-hero-figure{text-align:center}
+.target-hero-value{font-family:var(--font-d);font-weight:900;font-size:2.1rem;letter-spacing:-1px;color:var(--text)}
+.target-hero-value.goal{color:var(--gold);font-size:1.6rem}
+.target-hero.hit .target-hero-value{color:var(--green)}
+.target-hero-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;font-family:var(--font-r);font-weight:600}
+.target-hero-divider{font-family:var(--font-r);color:var(--muted);font-size:13px;font-weight:700;align-self:center}
+.target-hero-bar{height:10px;border-radius:6px;background:var(--surface3);overflow:hidden;margin-bottom:12px;border:1px solid var(--border2)}
+.target-hero-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent2),var(--gold));transition:width .4s ease}
+.target-hero.hit .target-hero-fill{background:linear-gradient(90deg,var(--accent),var(--green))}
+.target-hero-msg{font-family:var(--font-r);font-size:13px;color:var(--text2);text-align:center;line-height:1.5;font-weight:600}
+.target-hero.hit .target-hero-msg{color:var(--green)}
+
+/* ── COMPACT SETTINGS (Capital Accounts / Broker Charges) ── */
+.settings-compact{margin-bottom:1.4rem;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);overflow:hidden}
+.settings-compact-summary{list-style:none;cursor:pointer;padding:.65rem 1rem;font-family:var(--font-r);font-size:11.5px;font-weight:700;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px;user-select:none}
+.settings-compact-summary::-webkit-details-marker{display:none}
+.settings-compact-summary:hover{color:var(--text)}
+.settings-compact-summary .arrow{transition:transform .2s;font-size:9px}
+.settings-compact[open] .settings-compact-summary .arrow{transform:rotate(90deg)}
+.settings-compact-body{padding:0 1rem 1rem}
+.settings-compact .top-cols{margin-bottom:0}
+.settings-compact .card{padding:1rem 1.1rem;margin-bottom:0}
+.settings-compact .card-title{font-size:.8rem;margin-bottom:.7rem}
 @keyframes pulseDanger{0%,100%{box-shadow:0 0 0 0 rgba(244,63,94,.35)}50%{box-shadow:0 0 0 6px rgba(244,63,94,0)}}
 
 .discipline-overlay{display:none;position:fixed;inset:0;background:rgba(4,2,8,.88);backdrop-filter:blur(10px);z-index:400;align-items:center;justify-content:center;padding:20px}
@@ -430,6 +481,27 @@ canvas{width:100%!important}
 </header>
 
 <main>
+  <!-- ── TODAY'S TARGET (big) ── -->
+  <div class="card target-hero" id="target-hero-card">
+    <div class="target-hero-top">
+      <div class="target-hero-label">🎯 Today's Target</div>
+      <div class="target-hero-date" id="target-hero-date">—</div>
+    </div>
+    <div class="target-hero-main">
+      <div class="target-hero-figure">
+        <div class="target-hero-value" id="target-hero-net">₹0</div>
+        <div class="target-hero-sub">Net So Far</div>
+      </div>
+      <div class="target-hero-divider">of</div>
+      <div class="target-hero-figure">
+        <div class="target-hero-value goal" id="target-hero-goal">₹0</div>
+        <div class="target-hero-sub" id="target-hero-goal-sub">10% of ₹0 start</div>
+      </div>
+    </div>
+    <div class="target-hero-bar"><div class="target-hero-fill" id="target-hero-fill" style="width:0%"></div></div>
+    <div class="target-hero-msg" id="target-hero-msg">Log a trade to start tracking today's target.</div>
+  </div>
+
   <!-- Always-visible stats -->
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">Current Capital</div><div class="stat-value neutral" id="stat-cap">₹0</div><div class="stat-sub" id="stat-cap-sub">Base: ₹0</div></div>
@@ -451,6 +523,9 @@ canvas{width:100%!important}
 
   <!-- ── JOURNAL VIEW ── -->
   <div id="view-journal" class="view active">
+    <details class="settings-compact" id="settings-compact">
+      <summary class="settings-compact-summary"><span class="arrow">▶</span> ⚙️ Capital Accounts &amp; Broker Charges (tap to expand)</summary>
+      <div class="settings-compact-body">
     <div class="top-cols">
       <!-- Capital -->
       <div class="card">
@@ -482,6 +557,8 @@ canvas{width:100%!important}
         </div>
       </div>
     </div>
+      </div>
+    </details>
 
     <!-- Log Form -->
     <div class="card">
@@ -581,6 +658,7 @@ canvas{width:100%!important}
         <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
         <span id="paste-status" style="font-size:11px;color:var(--accent);display:none">✓ Image pasted!</span>
         <span class="today-counter" id="today-counter"><span class="dot"></span><span id="today-counter-text">Trades today: 0</span></span>
+        <span class="target-badge" id="target-badge">🎯 <span id="target-badge-text">Target: —</span></span>
       </div>
       <div id="lock-banner-slot"></div>
     </div>
@@ -715,6 +793,21 @@ canvas{width:100%!important}
       <button class="btn-discipline-lock" onclick="lockTradingToday()">🔒 Lock out — stop trading today</button>
       <button class="btn-discipline-ack" onclick="closeDisciplineModal()">I'll be careful, let me continue</button>
     </div>
+  </div>
+</div>
+
+<div class="target-overlay" id="target-overlay">
+  <div class="target-modal" onclick="event.stopPropagation()">
+    <div class="target-icon">🎯</div>
+    <div class="target-title">Daily Target Hit!</div>
+    <div class="target-msg" id="target-msg">You've hit your 10% daily profit target. Locking in gains beats giving them back.</div>
+    <div class="target-stats">
+      <div class="target-stat"><div class="n" id="target-stat-pnl">₹0</div><div class="l">Net Today</div></div>
+      <div class="target-stat"><div class="n" id="target-stat-goal">₹0</div><div class="l">Target (10%)</div></div>
+      <div class="target-stat"><div class="n" id="target-stat-count">0</div><div class="l">Trades Today</div></div>
+    </div>
+    <button class="btn-target-lock" onclick="lockTradingToday(true)">🔒 Stop trading — lock in today's profit</button>
+    <button class="btn-target-ack" onclick="closeTargetModal()">I understand, let me continue anyway</button>
   </div>
 </div>
 
@@ -944,8 +1037,30 @@ const DISCIPLINE_MESSAGES = [
 ];
 let disciplineShownFor = null; // date string, so we only pop once per new trade beyond threshold in same save
 
+// ════ DAILY TRADE LIMIT + DAILY PROFIT TARGET ════
+const TRADE_LIMIT = 2;          // max trades allowed per day before auto-lock
+const DAILY_TARGET_PCT = 10;    // fixed daily profit target, % of base capital
+
 function tradesOnDate(date){
   return trades.filter(t=>t.date===date);
+}
+
+function dailyTargetAmount(date){
+  return capitalBeforeDate(date) * (DAILY_TARGET_PCT/100);
+}
+
+function capitalBeforeDate(date){
+  const charge = brokerCharge();
+  const prior = trades.filter(t=>t.date < date);
+  const gross = prior.reduce((s,t)=>s+t.pnl,0);
+  return totalCapital() + gross - (prior.length*charge);
+}
+
+function todayNet(date){
+  const charge = brokerCharge();
+  const dayTrades = tradesOnDate(date);
+  const gross = dayTrades.reduce((s,t)=>s+t.pnl,0);
+  return gross - (dayTrades.length*charge);
 }
 
 function updateTodayCounter(){
@@ -953,11 +1068,71 @@ function updateTodayCounter(){
   const n = tradesOnDate(date).length;
   const el = document.getElementById('today-counter');
   const txt = document.getElementById('today-counter-text');
-  if(!el||!txt) return;
-  txt.textContent = 'Trades today: '+n+(n>2?' — overtrading':'');
-  el.classList.remove('warn','danger');
-  if(n===2) el.classList.add('warn');
-  else if(n>2) el.classList.add('danger');
+  if(el && txt){
+    txt.textContent = 'Trades today: '+n+'/'+TRADE_LIMIT+(n>=TRADE_LIMIT?' — limit reached':'');
+    el.classList.remove('warn','danger');
+    if(n===TRADE_LIMIT-1) el.classList.add('warn');
+    else if(n>=TRADE_LIMIT) el.classList.add('danger');
+  }
+  updateTargetBadge(date);
+  renderTodayTargetCard(date);
+}
+
+function updateTargetBadge(date){
+  const badge = document.getElementById('target-badge');
+  const txt = document.getElementById('target-badge-text');
+  if(!badge||!txt) return;
+  const target = dailyTargetAmount(date);
+  const net = todayNet(date);
+  badge.classList.remove('hit');
+  if(!target){
+    txt.textContent = 'Add capital to set a target';
+    return;
+  }
+  txt.textContent = 'Target: '+fmtINR(target)+' ('+DAILY_TARGET_PCT+'%) · Today: '+(net>=0?'+':'')+fmtINR(net);
+  if(net>=target) badge.classList.add('hit');
+}
+
+function renderTodayTargetCard(date){
+  const card = document.getElementById('target-hero-card');
+  if(!card) return;
+  const startCap = capitalBeforeDate(date);
+  const target = dailyTargetAmount(date);
+  const net = todayNet(date);
+  const n = tradesOnDate(date).length;
+  const tradesLeft = Math.max(TRADE_LIMIT - n, 0);
+
+  document.getElementById('target-hero-date').textContent = date;
+  document.getElementById('target-hero-net').textContent = (net>=0?'+':'')+fmtINR(net);
+  document.getElementById('target-hero-goal').textContent = fmtINR(target);
+  document.getElementById('target-hero-goal-sub').textContent = DAILY_TARGET_PCT+'% of '+fmtINR(startCap)+' start';
+
+  const fill = document.getElementById('target-hero-fill');
+  const msg = document.getElementById('target-hero-msg');
+  const netEl = document.getElementById('target-hero-net');
+
+  if(startCap<=0){
+    fill.style.width='0%';
+    netEl.style.color='';
+    msg.textContent = 'Add capital in Capital Accounts & Broker Charges to calculate today\'s target.';
+    card.classList.remove('hit');
+    return;
+  }
+
+  netEl.style.color = net>0?'var(--green)':net<0?'var(--red)':'';
+  const pct = target>0 ? Math.max(0, Math.min(100, (net/target)*100)) : 0;
+  fill.style.width = pct+'%';
+
+  if(net>=target){
+    card.classList.add('hit');
+    const over = net-target;
+    msg.textContent = '🎉 Congrats! Today\'s 10% target is hit'+(over>0?' — '+fmtINR(over)+' over goal':'')+'. Well done — consider locking in and stopping for today.';
+  } else {
+    card.classList.remove('hit');
+    const remaining = target-net;
+    msg.textContent = fmtINR(remaining)+' more needed to hit today\'s target'+
+      (tradesLeft>0 ? ' — '+tradesLeft+' trade'+(tradesLeft!==1?'s':'')+' left today.' : ' — no trades left today (limit reached).');
+  }
 }
 
 function lockedDateVal(){ return localStorage.getItem('tl_lock_date') || ''; }
@@ -986,16 +1161,34 @@ function unlockTrading(){
   showToast('Lock removed — trade carefully', true);
 }
 
-function lockTradingToday(){
+function lockTradingToday(fromTarget){
   const date = document.getElementById('f-date').value;
   localStorage.setItem('tl_lock_date', date);
   closeDisciplineModal();
+  closeTargetModal();
   checkLockState();
-  showToast('Trading locked for today ✓');
+  showToast(fromTarget?'Locked in — trading closed for today ✓':'Trading locked for today ✓');
 }
 
 function closeDisciplineModal(){
   document.getElementById('discipline-overlay').classList.remove('open');
+}
+
+function closeTargetModal(){
+  const el = document.getElementById('target-overlay');
+  if(el) el.classList.remove('open');
+}
+
+function showTargetModal(date){
+  const dayTrades = tradesOnDate(date);
+  const net = todayNet(date);
+  const target = dailyTargetAmount(date);
+  document.getElementById('target-msg').textContent =
+    "You've hit your "+DAILY_TARGET_PCT+"% daily profit target for "+date+". Locking in gains beats giving them back to the market.";
+  document.getElementById('target-stat-pnl').textContent = (net>=0?'+':'')+fmtINR(net);
+  document.getElementById('target-stat-goal').textContent = fmtINR(target);
+  document.getElementById('target-stat-count').textContent = dayTrades.length;
+  document.getElementById('target-overlay').classList.add('open');
 }
 
 function showDisciplineModal(date){
@@ -1218,12 +1411,36 @@ function addTrade(){
   };
   trades.unshift(trade);
   save(); renderAll(); clearForm();
-  showToast('Trade saved ✓');
 
   const countToday = tradesOnDate(date).length;
   updateTodayCounter(); checkLockState();
-  if(countToday>2){
+
+  // Build an informative save toast: how much more is needed to hit today's target
+  const target = dailyTargetAmount(date);
+  const net = todayNet(date);
+  const tradesLeft = Math.max(TRADE_LIMIT - countToday, 0);
+  if(target>0 && net<target){
+    showToast('Trade saved ✓ — '+fmtINR(target-net)+' more to hit today\'s target ('+tradesLeft+' trade'+(tradesLeft!==1?'s':'')+' left)');
+  } else if(target>0 && net>=target){
+    showToast('Trade saved ✓ — 🎉 today\'s 10% target is hit!');
+  } else {
+    showToast('Trade saved ✓');
+  }
+
+  // Auto-lock once the daily trade limit is reached
+  if(countToday>=TRADE_LIMIT && lockedDateVal()!==date){
+    localStorage.setItem('tl_lock_date', date);
+    checkLockState();
+    setTimeout(()=>showToast('🚫 Daily trade limit ('+TRADE_LIMIT+') reached — trading locked automatically for today.', true), 1400);
+  } else if(countToday>2){
     setTimeout(()=>showDisciplineModal(date), 350);
+  }
+
+  // Daily profit target check — notify (congrats popup) once per day when hit
+  const hitKey = 'tl_target_hit_'+date;
+  if(target>0 && net>=target && !localStorage.getItem(hitKey)){
+    localStorage.setItem(hitKey, '1');
+    setTimeout(()=>showTargetModal(date), countToday>=TRADE_LIMIT?2100:700);
   }
 }
 
@@ -1956,7 +2173,7 @@ function renderYesterdayToday(){
 
   grid.innerHTML = buildCard('Yesterday', yest, yestStr, false) + buildCard('Today', now, todayStr, true);
 }
-function renderAll(){ renderStats(); renderCapTable(); renderTable(); renderYesterdayToday(); if(document.getElementById('view-calendar').classList.contains('active')) renderCalendar(); applyMoodTheme(); }
+function renderAll(){ renderStats(); renderCapTable(); renderTable(); renderYesterdayToday(); if(document.getElementById('view-calendar').classList.contains('active')) renderCalendar(); applyMoodTheme(); if(document.getElementById('f-date')){ const d=document.getElementById('f-date').value; updateTargetBadge(d); renderTodayTargetCard(d); } }
 
 /* ── AUTO MOOD THEME (based on recent PnL + emotion tags) ── */
 const POSITIVE_EMOTIONS=['Calm','Confident','Disciplined','Patient','Focused'];
