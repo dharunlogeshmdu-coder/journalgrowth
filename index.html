@@ -495,7 +495,7 @@ canvas{width:100%!important}
     <button class="btn-ai" onclick="toggleAI()">🤖 AI Advisor</button>
     <button class="btn-pdf" onclick="downloadPDF()">⬇ PDF Report</button>
     <span class="badge" id="cloud-status" title="Cloud sync status">☁ …</span>
-    <span class="badge" id="admin-badge" title="Signed in as the admin account" style="display:none;background:var(--gold-dim);color:var(--gold);border-color:var(--gold)">★ ADMIN</span>
+    <button class="badge" id="admin-badge" title="Signed in as the admin account — tap to view registered users" onclick="openAdminPanel()" style="display:none;background:var(--gold-dim);color:var(--gold);border-color:var(--gold);cursor:pointer;font-family:var(--font-m)">★ ADMIN</button>
     <button class="btn-pdf" id="signout-btn" onclick="doSignOut()" style="display:none">Sign out</button>
   </div>
 </header>
@@ -832,6 +832,22 @@ canvas{width:100%!important}
     <div class="cal-popup-date" id="cal-popup-date"></div>
     <div class="cal-popup-summary" id="cal-popup-summary"></div>
     <div id="cal-popup-trades"></div>
+  </div>
+</div>
+
+<!-- Admin: Registered Users Panel -->
+<div class="cal-popup-overlay" id="admin-popup-overlay" onclick="closeAdminPanel()">
+  <div class="cal-popup" style="width:min(95vw,760px)" onclick="event.stopPropagation()">
+    <button class="cal-popup-close" onclick="closeAdminPanel()">✕ Close</button>
+    <div class="cal-popup-date">★ Registered Users</div>
+    <div class="cal-popup-summary" id="admin-popup-summary" style="grid-template-columns:repeat(2,1fr)"></div>
+    <div style="overflow-x:auto">
+      <table class="perf-table" id="admin-users-table">
+        <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Joined</th></tr></thead>
+        <tbody id="admin-users-tbody"><tr><td colspan="4" style="color:var(--muted)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="broker-note" id="admin-popup-note" style="display:none"></div>
   </div>
 </div>
 
@@ -3067,6 +3083,61 @@ function openCalPopup(dateStr){
 
 function closeCalPopup(){
   document.getElementById('cal-popup-overlay').classList.remove('open');
+}
+
+// ════ ADMIN: REGISTERED USERS ════
+async function openAdminPanel(){
+  const isAdmin = cloudUser && cloudUser.email && cloudUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  if(!isAdmin) return;
+  const overlay = document.getElementById('admin-popup-overlay');
+  const tbody = document.getElementById('admin-users-tbody');
+  const summary = document.getElementById('admin-popup-summary');
+  const note = document.getElementById('admin-popup-note');
+  note.style.display = 'none';
+  tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted)">Loading…</td></tr>`;
+  summary.innerHTML = '';
+  overlay.classList.add('open');
+  try{
+    const snap = await db.collection('users').orderBy('createdAt','desc').get();
+    if(snap.empty){
+      tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted)">No registered users found.</td></tr>`;
+      return;
+    }
+    summary.innerHTML = `
+      <div class="cal-popup-stat">
+        <div class="cal-popup-stat-label">Total Accounts</div>
+        <div class="cal-popup-stat-val" style="color:var(--accent)">${snap.size}</div>
+      </div>
+      <div class="cal-popup-stat">
+        <div class="cal-popup-stat-label">Signed In As</div>
+        <div class="cal-popup-stat-val" style="color:var(--gold);font-size:.85rem;word-break:break-all">${cloudUser.email}</div>
+      </div>`;
+    const rows = [];
+    snap.forEach(doc => {
+      const u = doc.data();
+      const joined = (u.createdAt && u.createdAt.toDate) ? u.createdAt.toDate().toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      const isThisAdmin = u.email && u.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      rows.push(`
+        <tr>
+          <td class="pf-name">${escapeHtml(u.name || '—')}${isThisAdmin ? ' <span style="color:var(--gold);font-size:10px">★ admin</span>' : ''}</td>
+          <td>${escapeHtml(u.email || '—')}</td>
+          <td>${escapeHtml(u.mobile || '—')}</td>
+          <td>${joined}</td>
+        </tr>`);
+    });
+    tbody.innerHTML = rows.join('');
+  }catch(e){
+    console.error('Admin user list failed', e);
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--red)">Could not load users.</td></tr>`;
+    note.style.display = 'block';
+    note.textContent = 'This usually means your Firestore security rules only let each user read their own "users" document. Grant the admin account read access to the whole "users" collection (e.g. allow read: if request.auth.token.email == "'+ADMIN_EMAIL+'";) in the Firebase console, then try again.';
+  }
+}
+function closeAdminPanel(){
+  document.getElementById('admin-popup-overlay').classList.remove('open');
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 
