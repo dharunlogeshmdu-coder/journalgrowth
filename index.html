@@ -431,6 +431,15 @@ canvas{width:100%!important}
 ::-webkit-scrollbar-thumb:hover{background:var(--accent2)}
 
 @media(max-width:600px){main{padding:1rem}.form-grid{grid-template-columns:1fr 1fr}}
+/* ── LOGIN OVERLAY ── */
+.login-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(6,8,16,0.92);backdrop-filter:blur(10px)}
+.login-card{width:100%;max-width:340px;background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);border:1px solid var(--border2);border-radius:var(--radius-xl);padding:2rem 1.8rem;box-shadow:var(--glow2)}
+.login-title{font-family:var(--font-d);font-weight:800;font-size:1.2rem;color:var(--text);margin-bottom:4px}
+.login-sub{font-size:11px;color:var(--muted);margin-bottom:1.4rem;font-family:var(--font-m)}
+.login-card .field{margin-bottom:12px}
+.login-actions{display:flex;gap:10px;margin-top:6px}
+.login-actions .btn{flex:1}
+.login-error{display:none;color:var(--red);font-size:11.5px;margin-top:10px;font-family:var(--font-m);line-height:1.5}
 </style>
 </head>
 <body>
@@ -477,6 +486,8 @@ canvas{width:100%!important}
     <span class="badge" id="total-badge">0 trades</span>
     <button class="btn-ai" onclick="toggleAI()">🤖 AI Advisor</button>
     <button class="btn-pdf" onclick="downloadPDF()">⬇ PDF Report</button>
+    <span class="badge" id="cloud-status" title="Cloud sync status">☁ …</span>
+    <button class="btn-pdf" id="signout-btn" onclick="doSignOut()" style="display:none">Sign out</button>
   </div>
 </header>
 
@@ -865,6 +876,149 @@ canvas{width:100%!important}
 
 <div id="toast"></div>
 
+<div class="login-overlay" id="login-overlay">
+  <div class="login-card">
+    <div class="login-title">Dharun <span style="color:var(--accent)">Records</span></div>
+    <div class="login-sub">Sign in to sync your journal to the cloud</div>
+    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" autocomplete="username"/></div>
+    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"/></div>
+    <div class="login-actions">
+      <button class="btn btn-primary" onclick="doSignIn()">Sign In</button>
+      <button class="btn btn-ghost" onclick="doSignUp()">Create Account</button>
+    </div>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  FIREBASE CLOUD SYNC
+//  1. Go to https://console.firebase.google.com → Create project
+//  2. Build → Authentication → Get started → Enable "Email/Password"
+//  3. Build → Firestore Database → Create database (start in test mode, then lock down with the rules below)
+//  4. Project settings (gear icon) → General → "Your apps" → Add app (</>) → copy the config object below
+//  5. Paste your config into firebaseConfig here
+// ═══════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let cloudUser = null;
+let cloudReady = false;
+let cloudSaveTimer = null;
+
+function showLoginOverlay(show){
+  document.getElementById('login-overlay').style.display = show ? 'flex' : 'none';
+}
+function loginError(msg){
+  const el = document.getElementById('login-error');
+  el.textContent = msg || '';
+  el.style.display = msg ? 'block' : 'none';
+}
+function doSignUp(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!email || !pass){ loginError('Enter an email and password (min 6 characters).'); return; }
+  auth.createUserWithEmailAndPassword(email, pass).catch(e=>loginError(e.message));
+}
+function doSignIn(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!email || !pass){ loginError('Enter an email and password.'); return; }
+  auth.signInWithEmailAndPassword(email, pass).catch(e=>loginError(e.message));
+}
+function doSignOut(){ auth.signOut(); }
+
+auth.onAuthStateChanged(async function(user){
+  const statusEl = document.getElementById('cloud-status');
+  const signoutBtn = document.getElementById('signout-btn');
+  if(user){
+    cloudUser = user;
+    loginError('');
+    showLoginOverlay(false);
+    if(signoutBtn) signoutBtn.style.display = '';
+    if(statusEl) statusEl.textContent = '☁ syncing…';
+    await cloudLoad();
+    cloudReady = true;
+    if(statusEl) statusEl.textContent = '☁ synced';
+  } else {
+    cloudUser = null;
+    cloudReady = false;
+    if(signoutBtn) signoutBtn.style.display = 'none';
+    if(statusEl) statusEl.textContent = '☁ signed out';
+    showLoginOverlay(true);
+  }
+});
+
+async function cloudLoad(){
+  try {
+    const docRef = db.collection('journals').doc(cloudUser.uid);
+    const snap = await docRef.get();
+    if(snap.exists){
+      const data = snap.data();
+      if(Array.isArray(data.trades)) trades = data.trades;
+      if(Array.isArray(data.capAccounts)) capAccounts = data.capAccounts;
+      if(data.brokerCharge !== undefined && document.getElementById('broker-charge')){
+        document.getElementById('broker-charge').value = data.brokerCharge;
+      }
+      if(typeof data.lockDate === 'string'){
+        if(data.lockDate) localStorage.setItem('tl_lock_date', data.lockDate);
+        else localStorage.removeItem('tl_lock_date');
+      }
+      localStorage.setItem('tl_trades_v4', JSON.stringify(trades));
+      localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
+    } else {
+      // First sign-in on this account: push whatever is currently on this device to the cloud
+      await cloudSaveNow();
+    }
+    if(typeof renderAll === 'function') renderAll();
+    if(typeof checkLockState === 'function') checkLockState();
+  } catch(e){
+    console.error('Cloud load failed', e);
+    const statusEl = document.getElementById('cloud-status');
+    if(statusEl) statusEl.textContent = '☁ error';
+  }
+}
+
+async function cloudSaveNow(){
+  if(!cloudUser) return;
+  try {
+    await db.collection('journals').doc(cloudUser.uid).set({
+      trades: trades,
+      capAccounts: capAccounts,
+      brokerCharge: document.getElementById('broker-charge') ? document.getElementById('broker-charge').value : '100',
+      lockDate: localStorage.getItem('tl_lock_date') || '',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+    const statusEl = document.getElementById('cloud-status');
+    if(statusEl) statusEl.textContent = '☁ synced';
+  } catch(e){
+    console.error('Cloud save failed', e);
+    const statusEl = document.getElementById('cloud-status');
+    if(statusEl) statusEl.textContent = '☁ error';
+  }
+}
+
+function cloudSave(){
+  const statusEl = document.getElementById('cloud-status');
+  if(statusEl) statusEl.textContent = '☁ saving…';
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(cloudSaveNow, 600);
+}
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 // ════ STATE ════
@@ -1157,6 +1311,7 @@ function checkLockState(){
 function unlockTrading(){
   if(!confirm("You locked trading for today on purpose. Are you sure you want to break that rule?")) return;
   localStorage.removeItem('tl_lock_date');
+  cloudSave();
   checkLockState();
   showToast('Lock removed — trade carefully', true);
 }
@@ -1164,6 +1319,7 @@ function unlockTrading(){
 function lockTradingToday(fromTarget){
   const date = document.getElementById('f-date').value;
   localStorage.setItem('tl_lock_date', date);
+  cloudSave();
   closeDisciplineModal();
   closeTargetModal();
   checkLockState();
@@ -1226,10 +1382,11 @@ document.getElementById('prev-before').addEventListener('mouseenter',()=>{ activ
 document.getElementById('prev-after').addEventListener('mouseenter',()=>{ activePasteSlot='after'; });
 
 // ════ HELPERS ════
-function save(){ localStorage.setItem('tl_trades_v4', JSON.stringify(trades)); }
+function save(){ localStorage.setItem('tl_trades_v4', JSON.stringify(trades)); cloudSave(); }
 function saveSettings(){
   localStorage.setItem('tl_broker', document.getElementById('broker-charge').value);
   localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
+  cloudSave();
 }
 function brokerCharge(){ return +(document.getElementById('broker-charge').value)||0; }
 function totalCapital(){ return capAccounts.reduce((s,a)=>s+(+a.amount||0),0); }
@@ -1430,6 +1587,7 @@ function addTrade(){
   // Auto-lock once the daily trade limit is reached
   if(countToday>=TRADE_LIMIT && lockedDateVal()!==date){
     localStorage.setItem('tl_lock_date', date);
+    cloudSave();
     checkLockState();
     setTimeout(()=>showToast('🚫 Daily trade limit ('+TRADE_LIMIT+') reached — trading locked automatically for today.', true), 1400);
   } else if(countToday>2){
