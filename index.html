@@ -995,6 +995,8 @@ function setAuthButtonsBusy(busy){
   if(signUpBtn) signUpBtn.disabled = busy;
   if(signUpBtn) signUpBtn.textContent = busy ? 'Please wait…' : 'Create Account';
 }
+let pendingFreshSignup = false;
+
 async function doSignUp(){
   const name = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim();
@@ -1007,6 +1009,11 @@ async function doSignUp(){
   if(pass.length < 6){ loginError('Password must be at least 6 characters.'); return; }
   setAuthButtonsBusy(true);
   try{
+    // Set this BEFORE calling createUserWithEmailAndPassword so the auth-state
+    // listener sees it no matter how fast it fires — this is what guarantees
+    // the new account gets an empty journal instead of inheriting whatever
+    // trades/capital happen to be sitting in this device's local storage.
+    pendingFreshSignup = true;
     const cred = await auth.createUserWithEmailAndPassword(email, pass);
     await db.collection('users').doc(cred.user.uid).set({
       name: name,
@@ -1016,6 +1023,7 @@ async function doSignUp(){
     }, {merge:true});
     try{ await cred.user.updateProfile({displayName:name}); }catch(_e){}
   }catch(e){
+    pendingFreshSignup = false;
     console.error('Sign up failed', e);
     loginError(friendlyAuthError(e));
   }finally{
@@ -1065,6 +1073,22 @@ auth.onAuthStateChanged(async function(user){
 
 async function cloudLoad(){
   try {
+    if(pendingFreshSignup){
+      pendingFreshSignup = false;
+      // Brand-new account: start with a clean slate regardless of what this
+      // device's local storage currently holds, then push that clean slate
+      // up as this account's own cloud journal.
+      trades = [];
+      capAccounts = [{id:1, name:'Main Account', amount:100000}];
+      localStorage.setItem('tl_trades_v4', JSON.stringify(trades));
+      localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
+      localStorage.removeItem('tl_lock_date');
+      if(document.getElementById('broker-charge')) document.getElementById('broker-charge').value = '100';
+      await cloudSaveNow();
+      if(typeof renderAll === 'function') renderAll();
+      if(typeof checkLockState === 'function') checkLockState();
+      return;
+    }
     const docRef = db.collection('journals').doc(cloudUser.uid);
     const snap = await docRef.get();
     if(snap.exists){
@@ -1123,6 +1147,19 @@ function cloudSave(){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 // ════ STATE ════
+// Timezone-safe "YYYY-MM-DD" for a given Date (or now). NEVER use
+// date.toISOString().split('T')[0] for local dates — that converts to UTC
+// and silently shifts the date back a day for any timezone ahead of UTC
+// (e.g. India, UTC+5:30), which is why "today" entries could vanish from
+// the calendar / today views.
+function localDateStr(d){
+  d = d || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
 let trades = JSON.parse(localStorage.getItem('tl_trades_v4') || '[]');
 let capAccounts = JSON.parse(localStorage.getItem('tl_cap_v4') || JSON.stringify([{id:1,name:'Main Account',amount:100000}]));
 let ssTemp = {before:'', after:''};
@@ -1469,7 +1506,7 @@ document.getElementById('f-date').addEventListener('change', function(){
 });
 
 // ════ INIT ════
-document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('f-date').value = localDateStr();
 document.getElementById('broker-charge').value = localStorage.getItem('tl_broker') || '100';
 updateTodayCounter();
 checkLockState();
@@ -1708,7 +1745,7 @@ function clearForm(){
   document.getElementById('f-symbol').value='';
   document.getElementById('f-direction').value='Long';
   document.getElementById('f-emotion').value='';
-  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-date').value=localDateStr();
   document.getElementById('custom-sym-field').style.display='none';
   document.getElementById('f-duration').textContent='—';
   clearSS('before'); clearSS('after');
@@ -2604,7 +2641,7 @@ let calMonth = new Date().getMonth(); // 0-indexed
 
 function renderCalendar(){
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = localDateStr(today);
   const charge = brokerCharge();
 
   // Build daily trade map
@@ -2631,7 +2668,7 @@ function renderCalendar(){
   const totalCells = Math.ceil((firstDay.getDay() + lastDay.getDate()) / 7) * 7;
 
   for(let i = 0; i < totalCells; i++){
-    const dateStr = cur.toISOString().split('T')[0];
+    const dateStr = localDateStr(cur);
     const dayTrades = dayMap[dateStr] || [];
     const isThisMonth = cur.getMonth() === calMonth;
     const isToday = dateStr === todayStr;
