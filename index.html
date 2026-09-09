@@ -1142,6 +1142,22 @@ function cloudSave(){
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(cloudSaveNow, 600);
 }
+
+// Safety net: if the tab is closed, backgrounded, or the phone screen locks
+// before the 600ms debounce above fires, a pending save would otherwise be
+// lost — it'd sit saved on THIS device only and never reach the cloud. Flush
+// it immediately the moment the page starts hiding, instead of waiting.
+function flushCloudSave(){
+  if(cloudSaveTimer){
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer = null;
+    cloudSaveNow();
+  }
+}
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden') flushCloudSave();
+});
+window.addEventListener('pagehide', flushCloudSave);
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
