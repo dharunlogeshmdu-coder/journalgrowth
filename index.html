@@ -517,6 +517,7 @@ canvas{width:100%!important}
   <!-- Always-visible stats -->
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">Current Capital</div><div class="stat-value neutral" id="stat-cap">₹0</div><div class="stat-sub" id="stat-cap-sub">Base: ₹0</div></div>
+    <div class="stat-card"><div class="stat-label">Available Balance</div><div class="stat-value neutral" id="stat-avail">₹0</div><div class="stat-sub" id="stat-avail-sub">Today P&L: ₹0 · Charges: ₹0</div></div>
     <div class="stat-card"><div class="stat-label">Gross Profit</div><div class="stat-value up" id="stat-gprofit">₹0</div><div class="stat-sub" id="stat-gprofit-sub">0 winning trades</div></div>
     <div class="stat-card"><div class="stat-label">Gross Loss</div><div class="stat-value down" id="stat-gloss">₹0</div><div class="stat-sub" id="stat-gloss-sub">0 losing trades</div></div>
     <div class="stat-card"><div class="stat-label">Broker Charges</div><div class="stat-value neutral" id="stat-charges">₹0</div><div class="stat-sub">Total deducted</div></div>
@@ -944,6 +945,7 @@ const db = firebase.firestore();
 let cloudUser = null;
 let cloudReady = false;
 let cloudSaveTimer = null;
+let cloudUnsubscribe = null;
 
 const ADMIN_EMAIL = 'dharunlogeshmdu@gmail.com';
 
@@ -1058,12 +1060,16 @@ auth.onAuthStateChanged(async function(user){
     if(signoutBtn) signoutBtn.style.display = '';
     if(adminBadge) adminBadge.style.display = (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? '' : 'none';
     if(statusEl) statusEl.textContent = '☁ syncing…';
-    await cloudLoad();
+    await cloudListen();
     cloudReady = true;
     if(statusEl) statusEl.textContent = '☁ synced';
   } else {
     cloudUser = null;
     cloudReady = false;
+    // Stop listening for this account's data the moment we sign out — otherwise
+    // the old listener keeps running (and would either leak data across
+    // accounts on this device, or just spam permission-denied errors).
+    if(cloudUnsubscribe){ cloudUnsubscribe(); cloudUnsubscribe = null; }
     if(signoutBtn) signoutBtn.style.display = 'none';
     if(adminBadge) adminBadge.style.display = 'none';
     if(statusEl) statusEl.textContent = '☁ signed out';
@@ -1071,51 +1077,71 @@ auth.onAuthStateChanged(async function(user){
   }
 });
 
-async function cloudLoad(){
-  try {
-    if(pendingFreshSignup){
-      pendingFreshSignup = false;
-      // Brand-new account: start with a clean slate regardless of what this
-      // device's local storage currently holds, then push that clean slate
-      // up as this account's own cloud journal.
-      trades = [];
-      capAccounts = [{id:1, name:'Main Account', amount:100000}];
-      localStorage.setItem('tl_trades_v4', JSON.stringify(trades));
-      localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
-      localStorage.removeItem('tl_lock_date');
-      if(document.getElementById('broker-charge')) document.getElementById('broker-charge').value = '100';
-      await cloudSaveNow();
-      if(typeof renderAll === 'function') renderAll();
-      if(typeof checkLockState === 'function') checkLockState();
-      return;
-    }
+// Live cloud sync: rather than fetching the journal once at sign-in (which
+// left every other already-open device stuck showing stale data until it
+// was closed and reopened), this keeps a standing Firestore listener open.
+// The instant ANY signed-in device saves a change, every other device
+// signed into the same account gets pushed the update automatically —
+// that's what actually makes "add on laptop, see it on phone" work without
+// having to manually refresh or re-login on the phone.
+function cloudListen(){
+  return new Promise((resolve)=>{
+    if(cloudUnsubscribe){ cloudUnsubscribe(); cloudUnsubscribe = null; }
+    let firstSnap = true;
+    const finishFirst = ()=>{ if(firstSnap){ firstSnap = false; resolve(); } };
     const docRef = db.collection('journals').doc(cloudUser.uid);
-    const snap = await docRef.get();
-    if(snap.exists){
-      const data = snap.data();
-      if(Array.isArray(data.trades)) trades = data.trades;
-      if(Array.isArray(data.capAccounts)) capAccounts = data.capAccounts;
-      if(data.brokerCharge !== undefined && document.getElementById('broker-charge')){
-        document.getElementById('broker-charge').value = data.brokerCharge;
+    cloudUnsubscribe = docRef.onSnapshot(async function(snap){
+      try {
+        if(pendingFreshSignup){
+          pendingFreshSignup = false;
+          // Brand-new account: start with a clean slate regardless of what
+          // this device's local storage currently holds, then push that
+          // clean slate up as this account's own cloud journal.
+          trades = [];
+          capAccounts = [{id:1, name:'Main Account', amount:100000}];
+          localStorage.setItem('tl_trades_v4', JSON.stringify(trades));
+          localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
+          localStorage.removeItem('tl_lock_date');
+          if(document.getElementById('broker-charge')) document.getElementById('broker-charge').value = '100';
+          await cloudSaveNow();
+          if(typeof renderAll === 'function') renderAll();
+          if(typeof checkLockState === 'function') checkLockState();
+          finishFirst();
+          return;
+        }
+        if(snap.exists){
+          const data = snap.data();
+          if(Array.isArray(data.trades)) trades = data.trades;
+          if(Array.isArray(data.capAccounts)) capAccounts = data.capAccounts;
+          if(data.brokerCharge !== undefined && document.getElementById('broker-charge')){
+            document.getElementById('broker-charge').value = data.brokerCharge;
+          }
+          if(typeof data.lockDate === 'string'){
+            if(data.lockDate) localStorage.setItem('tl_lock_date', data.lockDate);
+            else localStorage.removeItem('tl_lock_date');
+          }
+          localStorage.setItem('tl_trades_v4', JSON.stringify(trades));
+          localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
+        } else {
+          // First sign-in on this account: push whatever is currently on this device to the cloud
+          await cloudSaveNow();
+        }
+        if(typeof renderAll === 'function') renderAll();
+        if(typeof checkLockState === 'function') checkLockState();
+        if(statusEl2()) statusEl2().textContent = '☁ synced';
+      } catch(e){
+        console.error('Cloud sync error', e);
+        if(statusEl2()) statusEl2().textContent = '☁ error';
       }
-      if(typeof data.lockDate === 'string'){
-        if(data.lockDate) localStorage.setItem('tl_lock_date', data.lockDate);
-        else localStorage.removeItem('tl_lock_date');
-      }
-      localStorage.setItem('tl_trades_v4', JSON.stringify(trades));
-      localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
-    } else {
-      // First sign-in on this account: push whatever is currently on this device to the cloud
-      await cloudSaveNow();
-    }
-    if(typeof renderAll === 'function') renderAll();
-    if(typeof checkLockState === 'function') checkLockState();
-  } catch(e){
-    console.error('Cloud load failed', e);
-    const statusEl = document.getElementById('cloud-status');
-    if(statusEl) statusEl.textContent = '☁ error';
-  }
+      finishFirst();
+    }, function(err){
+      console.error('Cloud listen failed', err);
+      if(statusEl2()) statusEl2().textContent = '☁ error';
+      finishFirst();
+    });
+  });
 }
+function statusEl2(){ return document.getElementById('cloud-status'); }
 
 async function cloudSaveNow(){
   if(!cloudUser) return;
@@ -1915,6 +1941,10 @@ function renderStats(){
     document.getElementById('bc-per').textContent='₹'+charge;
     document.getElementById('bc-total').textContent='₹0';
     document.getElementById('bc-count').textContent='0';
+    const avEl0=document.getElementById('stat-avail');
+    if(avEl0){ avEl0.textContent=fmtINR(totalCap); avEl0.className='stat-value neutral'; }
+    const avSub0=document.getElementById('stat-avail-sub');
+    if(avSub0) avSub0.textContent='Today P&L: ₹0 · Charges: ₹0';
     return;
   }
 
@@ -1942,6 +1972,22 @@ function renderStats(){
     ' · <span style="color:var(--green)">'+fmtSgn(grossProfit)+'</span>'+
     ' · <span style="color:var(--red)">'+fmtSgn(grossLoss)+'</span>'+
     ' · <span style="color:var(--amber)">-'+fmtINR(totalCharges)+'</span> chg';
+
+  // Available Balance = current capital, broken down by today's contribution
+  // (today's gross P&L minus today's broker charges) so it's clear exactly
+  // how today's trading moved the balance you have available right now.
+  const todayD = localDateStr();
+  const todayTrades = tradesOnDate(todayD);
+  const todayGross = todayTrades.reduce((s,t)=>s+t.pnl,0);
+  const todayCharges = todayTrades.length*charge;
+  const todayNetVal = todayGross - todayCharges;
+  const avEl=document.getElementById('stat-avail');
+  if(avEl){ avEl.textContent=fmtINR(currentCap); avEl.className='stat-value '+(todayNetVal>0?'up':todayNetVal<0?'down':'neutral'); }
+  const avSub=document.getElementById('stat-avail-sub');
+  if(avSub) avSub.innerHTML=
+    'Today P&L: <span style="color:'+(todayGross>=0?'var(--green)':'var(--red)')+'">'+fmtSgn(todayGross)+'</span>'+
+    ' · Charges: <span style="color:var(--amber)">-'+fmtINR(todayCharges)+'</span>'+
+    ' · Net: <span style="color:'+(todayNetVal>=0?'var(--green)':'var(--red)')+'">'+fmtSgn(todayNetVal)+'</span>';
 
   const gl=document.getElementById('stat-gloss');
   gl.textContent=fmtINR(grossLoss); gl.className='stat-value '+(grossLoss<0?'down':'neutral');
