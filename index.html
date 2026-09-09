@@ -155,24 +155,32 @@ main{max-width:1400px;margin:0 auto;padding:1.8rem 2rem}
 .btn-target-ack:hover{color:var(--text);border-color:var(--border3)}
 
 /* ── TODAY'S TARGET HERO CARD ── */
-.target-hero{background:linear-gradient(135deg,rgba(251,191,36,0.08),var(--surface2) 60%);border:1.5px solid var(--gold);border-radius:var(--radius-xl);padding:1.5rem 1.7rem;margin-bottom:1.5rem;position:relative;overflow:hidden;box-shadow:0 0 40px rgba(251,191,36,0.08)}
+.target-hero{background:linear-gradient(135deg,rgba(251,191,36,0.08),var(--surface2) 60%);border:1.5px solid var(--gold);border-radius:var(--radius-lg);padding:.7rem .9rem;margin-bottom:.7rem;position:relative;overflow:hidden;box-shadow:0 0 40px rgba(251,191,36,0.08)}
 .target-hero.hit{border-color:var(--green);background:linear-gradient(135deg,rgba(16,185,129,0.1),var(--surface2) 60%);box-shadow:0 0 50px rgba(16,185,129,0.15)}
-.target-hero-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
-.target-hero-label{font-family:var(--font-r);font-weight:800;font-size:13px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.target-hero-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:.45rem}
+.target-hero-label{font-family:var(--font-r);font-weight:800;font-size:10.5px;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase}
 .target-hero.hit .target-hero-label{color:var(--green)}
-.target-hero-date{font-family:var(--font-m);font-size:11px;color:var(--muted)}
-.target-hero-main{display:flex;align-items:center;justify-content:center;gap:22px;margin-bottom:1rem;flex-wrap:wrap}
+.target-hero-date{font-family:var(--font-m);font-size:9.5px;color:var(--muted)}
+.target-hero-main{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:.5rem;flex-wrap:wrap}
 .target-hero-figure{text-align:center}
-.target-hero-value{font-family:var(--font-d);font-weight:900;font-size:2.1rem;letter-spacing:-1px;color:var(--text)}
-.target-hero-value.goal{color:var(--gold);font-size:1.6rem}
+.target-hero-value{font-family:var(--font-d);font-weight:900;font-size:1.3rem;letter-spacing:-.5px;color:var(--text)}
+.target-hero-value.goal{color:var(--gold);font-size:1.05rem}
 .target-hero.hit .target-hero-value{color:var(--green)}
-.target-hero-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;font-family:var(--font-r);font-weight:600}
-.target-hero-divider{font-family:var(--font-r);color:var(--muted);font-size:13px;font-weight:700;align-self:center}
-.target-hero-bar{height:10px;border-radius:6px;background:var(--surface3);overflow:hidden;margin-bottom:12px;border:1px solid var(--border2)}
-.target-hero-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent2),var(--gold));transition:width .4s ease}
+.target-hero-sub{font-size:8.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px;font-family:var(--font-r);font-weight:600}
+.target-hero-divider{font-family:var(--font-r);color:var(--muted);font-size:11px;font-weight:700;align-self:center}
+.target-hero-bar{height:6px;border-radius:5px;background:var(--surface3);overflow:hidden;margin-bottom:7px;border:1px solid var(--border2)}
+.target-hero-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--accent2),var(--gold));transition:width .4s ease}
 .target-hero.hit .target-hero-fill{background:linear-gradient(90deg,var(--accent),var(--green))}
-.target-hero-msg{font-family:var(--font-r);font-size:13px;color:var(--text2);text-align:center;line-height:1.5;font-weight:600}
+.target-hero-msg{font-family:var(--font-r);font-size:11px;color:var(--text2);text-align:center;line-height:1.4;font-weight:600}
 .target-hero.hit .target-hero-msg{color:var(--green)}
+.target-hero-days{margin-top:5px;font-size:9px;color:var(--muted);text-align:center;font-family:var(--font-m)}
+
+/* ── MONTHLY TARGET (purple variant) ── */
+.target-hero.monthly{border-color:var(--accent2);background:linear-gradient(135deg,rgba(124,58,255,0.09),var(--surface2) 60%);box-shadow:0 0 40px rgba(124,58,255,0.1)}
+.target-hero.monthly .target-hero-label{color:var(--accent2)}
+.target-hero.monthly .target-hero-value.goal{color:var(--accent2)}
+.target-hero.monthly.hit{border-color:var(--green);background:linear-gradient(135deg,rgba(16,185,129,0.1),var(--surface2) 60%);box-shadow:0 0 50px rgba(16,185,129,0.15)}
+.target-hero.monthly.hit .target-hero-label{color:var(--green)}
 
 /* ── COMPACT SETTINGS (Capital Accounts / Broker Charges) ── */
 .settings-compact{margin-bottom:1.4rem;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);overflow:hidden}
@@ -493,49 +501,73 @@ canvas{width:100%!important}
 </header>
 
 <main>
-  <!-- ── TODAY'S TARGET (big) ── -->
-  <div class="card target-hero" id="target-hero-card">
-    <div class="target-hero-top">
-      <div class="target-hero-label">🎯 Today's Target</div>
-      <div class="target-hero-date" id="target-hero-date">—</div>
-    </div>
-    <div class="target-hero-main">
-      <div class="target-hero-figure">
-        <div class="target-hero-value" id="target-hero-net">₹0</div>
-        <div class="target-hero-sub">Net So Far</div>
-      </div>
-      <div class="target-hero-divider">of</div>
-      <div class="target-hero-figure">
-        <div class="target-hero-value goal" id="target-hero-goal">₹0</div>
-        <div class="target-hero-sub" id="target-hero-goal-sub">10% of ₹0 start</div>
-      </div>
-    </div>
-    <div class="target-hero-bar"><div class="target-hero-fill" id="target-hero-fill" style="width:0%"></div></div>
-    <div class="target-hero-msg" id="target-hero-msg">Log a trade to start tracking today's target.</div>
-  </div>
-
-  <!-- Always-visible stats -->
-  <div class="stats-grid">
-    <div class="stat-card"><div class="stat-label">Current Capital</div><div class="stat-value neutral" id="stat-cap">₹0</div><div class="stat-sub" id="stat-cap-sub">Base: ₹0</div></div>
-    <div class="stat-card"><div class="stat-label">Available Balance</div><div class="stat-value neutral" id="stat-avail">₹0</div><div class="stat-sub" id="stat-avail-sub">Today P&L: ₹0 · Charges: ₹0</div></div>
-    <div class="stat-card"><div class="stat-label">Gross Profit</div><div class="stat-value up" id="stat-gprofit">₹0</div><div class="stat-sub" id="stat-gprofit-sub">0 winning trades</div></div>
-    <div class="stat-card"><div class="stat-label">Gross Loss</div><div class="stat-value down" id="stat-gloss">₹0</div><div class="stat-sub" id="stat-gloss-sub">0 losing trades</div></div>
-    <div class="stat-card"><div class="stat-label">Broker Charges</div><div class="stat-value neutral" id="stat-charges">₹0</div><div class="stat-sub">Total deducted</div></div>
-    <div class="stat-card"><div class="stat-label">Net P&L</div><div class="stat-value neutral" id="stat-pnl">₹0</div><div class="stat-sub">After charges</div></div>
-    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value neutral" id="stat-wr">—</div><div class="stat-sub" id="stat-wl">0W / 0L</div></div>
-    <div class="stat-card"><div class="stat-label">Profit Factor</div><div class="stat-value neutral" id="stat-pf">—</div><div class="stat-sub">Gross P / L</div></div>
-    <div class="stat-card"><div class="stat-label">Net Return</div><div class="stat-value neutral" id="stat-ret">—</div><div class="stat-sub">On total capital</div></div>
-    <div class="stat-card"><div class="stat-label">Recovery Needed</div><div class="stat-value neutral" id="stat-recovery">—</div><div class="stat-sub" id="stat-recovery-sub">Profit % to breakeven</div></div>
-  </div>
-
-  <!-- ── YESTERDAY VS TODAY ── -->
-  <div class="card" id="yt-compare-card">
-    <div class="card-title">📅 Yesterday vs Today</div>
-    <div class="yt-grid" id="yt-compare-grid"></div>
-  </div>
-
   <!-- ── JOURNAL VIEW ── -->
   <div id="view-journal" class="view active">
+    <!-- ── TARGET CARDS ── -->
+    <div class="top-cols" style="margin-bottom:.9rem">
+    <div class="card target-hero" id="target-hero-card">
+      <div class="target-hero-top">
+        <div class="target-hero-label">🎯 Today's Target</div>
+        <div class="target-hero-date" id="target-hero-date">—</div>
+      </div>
+      <div class="target-hero-main">
+        <div class="target-hero-figure">
+          <div class="target-hero-value" id="target-hero-net">₹0</div>
+          <div class="target-hero-sub">Net So Far</div>
+        </div>
+        <div class="target-hero-divider">of</div>
+        <div class="target-hero-figure">
+          <div class="target-hero-value goal" id="target-hero-goal">₹0</div>
+          <div class="target-hero-sub" id="target-hero-goal-sub">10% of ₹0 start</div>
+        </div>
+      </div>
+      <div class="target-hero-bar"><div class="target-hero-fill" id="target-hero-fill" style="width:0%"></div></div>
+      <div class="target-hero-msg" id="target-hero-msg">Log a trade to start tracking today's target.</div>
+    </div>
+
+    <!-- ── THIS MONTH'S TARGET (big) ── -->
+    <div class="card target-hero monthly" id="mtarget-hero-card">
+      <div class="target-hero-top">
+        <div class="target-hero-label">📅 This Month's Target</div>
+        <div class="target-hero-date" id="mtarget-hero-date">—</div>
+      </div>
+      <div class="target-hero-main">
+        <div class="target-hero-figure">
+          <div class="target-hero-value" id="mtarget-hero-net">₹0</div>
+          <div class="target-hero-sub">Net This Month</div>
+        </div>
+        <div class="target-hero-divider">of</div>
+        <div class="target-hero-figure">
+          <div class="target-hero-value goal" id="mtarget-hero-goal">₹0</div>
+          <div class="target-hero-sub" id="mtarget-hero-goal-sub">20% of ₹0 start</div>
+        </div>
+      </div>
+      <div class="target-hero-bar"><div class="target-hero-fill" id="mtarget-hero-fill" style="width:0%"></div></div>
+      <div class="target-hero-msg" id="mtarget-hero-msg">Log a trade to start tracking this month's target.</div>
+      <div class="target-hero-days" id="mtarget-hero-days">—</div>
+    </div>
+    </div>
+
+    <!-- Journal-only stats -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Current Capital</div><div class="stat-value neutral" id="stat-cap">₹0</div><div class="stat-sub" id="stat-cap-sub">Base: ₹0</div></div>
+      <div class="stat-card"><div class="stat-label">Available Balance</div><div class="stat-value neutral" id="stat-avail">₹0</div><div class="stat-sub" id="stat-avail-sub">Today P&L: ₹0 · Charges: ₹0</div></div>
+      <div class="stat-card"><div class="stat-label">Gross Profit</div><div class="stat-value up" id="stat-gprofit">₹0</div><div class="stat-sub" id="stat-gprofit-sub">0 winning trades</div></div>
+      <div class="stat-card"><div class="stat-label">Gross Loss</div><div class="stat-value down" id="stat-gloss">₹0</div><div class="stat-sub" id="stat-gloss-sub">0 losing trades</div></div>
+      <div class="stat-card"><div class="stat-label">Broker Charges</div><div class="stat-value neutral" id="stat-charges">₹0</div><div class="stat-sub">Total deducted</div></div>
+      <div class="stat-card"><div class="stat-label">Net P&L</div><div class="stat-value neutral" id="stat-pnl">₹0</div><div class="stat-sub">After charges</div></div>
+      <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value neutral" id="stat-wr">—</div><div class="stat-sub" id="stat-wl">0W / 0L</div></div>
+      <div class="stat-card"><div class="stat-label">Profit Factor</div><div class="stat-value neutral" id="stat-pf">—</div><div class="stat-sub">Gross P / L</div></div>
+      <div class="stat-card"><div class="stat-label">Net Return</div><div class="stat-value neutral" id="stat-ret">—</div><div class="stat-sub">On total capital</div></div>
+      <div class="stat-card"><div class="stat-label">Recovery Needed</div><div class="stat-value neutral" id="stat-recovery">—</div><div class="stat-sub" id="stat-recovery-sub">Profit % to breakeven</div></div>
+    </div>
+
+    <!-- ── YESTERDAY VS TODAY ── -->
+    <div class="card" id="yt-compare-card">
+      <div class="card-title">📅 Yesterday vs Today</div>
+      <div class="yt-grid" id="yt-compare-grid"></div>
+    </div>
+
     <details class="settings-compact" id="settings-compact">
       <summary class="settings-compact-summary"><span class="arrow">▶</span> ⚙️ Capital Accounts &amp; Broker Charges (tap to expand)</summary>
       <div class="settings-compact-body">
@@ -570,6 +602,18 @@ canvas{width:100%!important}
         </div>
       </div>
     </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">🎯 Profit Targets</div>
+        <div class="broker-row" style="margin-bottom:10px">
+          <label>Daily Target %</label>
+          <input type="number" id="daily-target-pct" value="10" min="0" step="0.1" oninput="saveSettings();renderAll()"/>
+        </div>
+        <div class="broker-row">
+          <label>Monthly Target %</label>
+          <input type="number" id="monthly-target-pct" value="20" min="0" step="0.1" oninput="saveSettings();renderAll()"/>
+        </div>
+        <div class="broker-note">Both are editable any time. The monthly target amount is calculated on the capital at the start of the month; the trading-days count shown on the monthly target card automatically excludes Saturdays, Sundays, and NSE/BSE (SEBI-regulated) market holidays — so it adjusts itself every month without you having to update anything.</div>
+      </div>
       </div>
     </details>
 
@@ -1103,6 +1147,8 @@ function cloudListen(){
           localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
           localStorage.removeItem('tl_lock_date');
           if(document.getElementById('broker-charge')) document.getElementById('broker-charge').value = '100';
+          if(document.getElementById('daily-target-pct')) document.getElementById('daily-target-pct').value = '10';
+          if(document.getElementById('monthly-target-pct')) document.getElementById('monthly-target-pct').value = '20';
           await cloudSaveNow();
           if(typeof renderAll === 'function') renderAll();
           if(typeof checkLockState === 'function') checkLockState();
@@ -1115,6 +1161,12 @@ function cloudListen(){
           if(Array.isArray(data.capAccounts)) capAccounts = data.capAccounts;
           if(data.brokerCharge !== undefined && document.getElementById('broker-charge')){
             document.getElementById('broker-charge').value = data.brokerCharge;
+          }
+          if(data.dailyTargetPct !== undefined && document.getElementById('daily-target-pct')){
+            document.getElementById('daily-target-pct').value = data.dailyTargetPct;
+          }
+          if(data.monthlyTargetPct !== undefined && document.getElementById('monthly-target-pct')){
+            document.getElementById('monthly-target-pct').value = data.monthlyTargetPct;
           }
           if(typeof data.lockDate === 'string'){
             if(data.lockDate) localStorage.setItem('tl_lock_date', data.lockDate);
@@ -1150,6 +1202,8 @@ async function cloudSaveNow(){
       trades: trades,
       capAccounts: capAccounts,
       brokerCharge: document.getElementById('broker-charge') ? document.getElementById('broker-charge').value : '100',
+      dailyTargetPct: document.getElementById('daily-target-pct') ? document.getElementById('daily-target-pct').value : '10',
+      monthlyTargetPct: document.getElementById('monthly-target-pct') ? document.getElementById('monthly-target-pct').value : '20',
       lockDate: localStorage.getItem('tl_lock_date') || '',
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, {merge:true});
@@ -1371,16 +1425,67 @@ const DISCIPLINE_MESSAGES = [
 ];
 let disciplineShownFor = null; // date string, so we only pop once per new trade beyond threshold in same save
 
-// ════ DAILY TRADE LIMIT + DAILY PROFIT TARGET ════
+// ════ SEBI / NSE / BSE TRADING-HOLIDAY CALENDAR ════
+// Update this list every year from the official NSE/BSE holiday circular
+// (both exchanges follow the same SEBI-regulated calendar). Saturdays and
+// Sundays are already excluded separately below, so only weekday holidays
+// actually matter here — but weekend-falling ones are harmless to include.
+const SEBI_HOLIDAYS = {
+  2025: ['2025-01-26','2025-02-26','2025-03-14','2025-03-31','2025-04-06','2025-04-10','2025-04-14','2025-04-18','2025-05-01','2025-06-07','2025-07-06','2025-08-15','2025-08-27','2025-10-02','2025-10-21','2025-10-22','2025-11-05','2025-12-25'],
+  2026: ['2026-01-26','2026-02-15','2026-03-03','2026-03-21','2026-03-26','2026-03-31','2026-04-03','2026-04-14','2026-05-01','2026-05-28','2026-06-26','2026-08-15','2026-09-14','2026-10-02','2026-10-20','2026-11-08','2026-11-10','2026-11-24','2026-12-25']
+};
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function ymdParts(y,m,d){ return y+'-'+pad2(m)+'-'+pad2(d); } // m is 1-indexed
+
+function isSebiHoliday(dateStr){
+  const year = dateStr.slice(0,4);
+  return (SEBI_HOLIDAYS[year]||[]).includes(dateStr);
+}
+
+function isTradingDay(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const dow = d.getDay(); // 0 = Sun, 6 = Sat
+  if(dow===0 || dow===6) return false;
+  if(isSebiHoliday(dateStr)) return false;
+  return true;
+}
+
+// Total trading days in a given month (year, month 1-indexed), excluding
+// Sat/Sun and SEBI/NSE/BSE holidays.
+function tradingDaysInMonth(year, month){
+  const daysInMonth = new Date(year, month, 0).getDate();
+  let count = 0;
+  for(let d=1; d<=daysInMonth; d++){
+    if(isTradingDay(ymdParts(year, month, d))) count++;
+  }
+  return count;
+}
+
+// Trading days elapsed so far this month, up to and including dateStr.
+function tradingDaysElapsedInMonth(dateStr){
+  const [y,m,day] = dateStr.split('-').map(Number);
+  let count = 0;
+  for(let d=1; d<=day; d++){
+    if(isTradingDay(ymdParts(y, m, d))) count++;
+  }
+  return count;
+}
+
+// ════ DAILY TRADE LIMIT + DAILY / MONTHLY PROFIT TARGET ════
 const TRADE_LIMIT = 2;          // max trades allowed per day before auto-lock
-const DAILY_TARGET_PCT = 10;    // fixed daily profit target, % of base capital
+
+// Both target percentages are editable in ⚙️ Capital Accounts & Broker
+// Charges → 🎯 Profit Targets, and persist via saveSettings()/cloud sync.
+function dailyPct(){ return +(document.getElementById('daily-target-pct')?.value)||0; }
+function monthlyPct(){ return +(document.getElementById('monthly-target-pct')?.value)||0; }
 
 function tradesOnDate(date){
   return trades.filter(t=>t.date===date);
 }
 
 function dailyTargetAmount(date){
-  return capitalBeforeDate(date) * (DAILY_TARGET_PCT/100);
+  return capitalBeforeDate(date) * (dailyPct()/100);
 }
 
 function capitalBeforeDate(date){
@@ -1388,6 +1493,77 @@ function capitalBeforeDate(date){
   const prior = trades.filter(t=>t.date < date);
   const gross = prior.reduce((s,t)=>s+t.pnl,0);
   return totalCapital() + gross - (prior.length*charge);
+}
+
+function monthStart(dateStr){ return dateStr.slice(0,7)+'-01'; }
+function monthKey(dateStr){ return dateStr.slice(0,7); }
+
+function capitalBeforeMonth(dateStr){
+  return capitalBeforeDate(monthStart(dateStr));
+}
+
+function tradesInMonth(dateStr){
+  const mk = monthKey(dateStr);
+  return trades.filter(t=>t.date && t.date.slice(0,7)===mk);
+}
+
+function monthNet(dateStr){
+  const charge = brokerCharge();
+  const mTrades = tradesInMonth(dateStr);
+  const gross = mTrades.reduce((s,t)=>s+t.pnl,0);
+  return gross - (mTrades.length*charge);
+}
+
+function monthlyTargetAmount(dateStr){
+  return capitalBeforeMonth(dateStr) * (monthlyPct()/100);
+}
+
+function updateMonthlyTargetCard(dateStr){
+  const card = document.getElementById('mtarget-hero-card');
+  if(!card || !dateStr) return;
+  const [y,m] = dateStr.split('-').map(Number);
+
+  const startCap = capitalBeforeMonth(dateStr);
+  const target = monthlyTargetAmount(dateStr);
+  const net = monthNet(dateStr);
+  const totalTD = tradingDaysInMonth(y, m);
+  const elapsedTD = tradingDaysElapsedInMonth(dateStr);
+
+  const monthName = new Date(y, m-1, 1).toLocaleString('en-IN',{month:'long', year:'numeric'});
+  document.getElementById('mtarget-hero-date').textContent = monthName;
+  document.getElementById('mtarget-hero-net').textContent = (net>=0?'+':'')+fmtINR(net);
+  document.getElementById('mtarget-hero-goal').textContent = fmtINR(target);
+  document.getElementById('mtarget-hero-goal-sub').textContent = monthlyPct()+'% of '+fmtINR(startCap)+' start';
+  document.getElementById('mtarget-hero-days').textContent =
+    elapsedTD+' of '+totalTD+' trading days elapsed this month (Sat/Sun & SEBI holidays auto-excluded)';
+
+  const fill = document.getElementById('mtarget-hero-fill');
+  const msg = document.getElementById('mtarget-hero-msg');
+  const netEl = document.getElementById('mtarget-hero-net');
+
+  if(startCap<=0){
+    fill.style.width='0%';
+    netEl.style.color='';
+    msg.textContent = 'Add capital in Capital Accounts & Broker Charges to calculate this month\'s target.';
+    card.classList.remove('hit');
+    return;
+  }
+
+  netEl.style.color = net>0?'var(--green)':net<0?'var(--red)':'';
+  const pct = target>0 ? Math.max(0, Math.min(100, (net/target)*100)) : 0;
+  fill.style.width = pct+'%';
+
+  if(target>0 && net>=target){
+    card.classList.add('hit');
+    const over = net-target;
+    msg.textContent = '🎉 This month\'s '+monthlyPct()+'% target is hit'+(over>0?' — '+fmtINR(over)+' over goal':'')+'. Great consistency!';
+  } else {
+    card.classList.remove('hit');
+    const remaining = target-net;
+    const remainingDays = Math.max(totalTD-elapsedTD, 0);
+    msg.textContent = fmtINR(remaining)+' more needed to hit this month\'s target'+
+      (remainingDays>0 ? ' — '+remainingDays+' trading day'+(remainingDays!==1?'s':'')+' left this month.' : ' — no trading days left this month.');
+  }
 }
 
 function todayNet(date){
@@ -1410,6 +1586,7 @@ function updateTodayCounter(){
   }
   updateTargetBadge(date);
   renderTodayTargetCard(date);
+  updateMonthlyTargetCard(date);
 }
 
 function updateTargetBadge(date){
@@ -1423,7 +1600,7 @@ function updateTargetBadge(date){
     txt.textContent = 'Add capital to set a target';
     return;
   }
-  txt.textContent = 'Target: '+fmtINR(target)+' ('+DAILY_TARGET_PCT+'%) · Today: '+(net>=0?'+':'')+fmtINR(net);
+  txt.textContent = 'Target: '+fmtINR(target)+' ('+dailyPct()+'%) · Today: '+(net>=0?'+':'')+fmtINR(net);
   if(net>=target) badge.classList.add('hit');
 }
 
@@ -1439,7 +1616,7 @@ function renderTodayTargetCard(date){
   document.getElementById('target-hero-date').textContent = date;
   document.getElementById('target-hero-net').textContent = (net>=0?'+':'')+fmtINR(net);
   document.getElementById('target-hero-goal').textContent = fmtINR(target);
-  document.getElementById('target-hero-goal-sub').textContent = DAILY_TARGET_PCT+'% of '+fmtINR(startCap)+' start';
+  document.getElementById('target-hero-goal-sub').textContent = dailyPct()+'% of '+fmtINR(startCap)+' start';
 
   const fill = document.getElementById('target-hero-fill');
   const msg = document.getElementById('target-hero-msg');
@@ -1520,7 +1697,7 @@ function showTargetModal(date){
   const net = todayNet(date);
   const target = dailyTargetAmount(date);
   document.getElementById('target-msg').textContent =
-    "You've hit your "+DAILY_TARGET_PCT+"% daily profit target for "+date+". Locking in gains beats giving them back to the market.";
+    "You've hit your "+dailyPct()+"% daily profit target for "+date+". Locking in gains beats giving them back to the market.";
   document.getElementById('target-stat-pnl').textContent = (net>=0?'+':'')+fmtINR(net);
   document.getElementById('target-stat-goal').textContent = fmtINR(target);
   document.getElementById('target-stat-count').textContent = dayTrades.length;
@@ -1550,6 +1727,8 @@ document.getElementById('f-date').addEventListener('change', function(){
 // ════ INIT ════
 document.getElementById('f-date').value = localDateStr();
 document.getElementById('broker-charge').value = localStorage.getItem('tl_broker') || '100';
+document.getElementById('daily-target-pct').value = localStorage.getItem('tl_daily_pct') || '10';
+document.getElementById('monthly-target-pct').value = localStorage.getItem('tl_monthly_pct') || '20';
 updateTodayCounter();
 checkLockState();
 
@@ -1566,6 +1745,8 @@ function save(){ localStorage.setItem('tl_trades_v4', JSON.stringify(trades)); c
 function saveSettings(){
   localStorage.setItem('tl_broker', document.getElementById('broker-charge').value);
   localStorage.setItem('tl_cap_v4', JSON.stringify(capAccounts));
+  localStorage.setItem('tl_daily_pct', document.getElementById('daily-target-pct').value);
+  localStorage.setItem('tl_monthly_pct', document.getElementById('monthly-target-pct').value);
   cloudSave();
 }
 function brokerCharge(){ return +(document.getElementById('broker-charge').value)||0; }
@@ -2531,7 +2712,7 @@ function renderYesterdayToday(){
 
   grid.innerHTML = buildCard('Yesterday', yest, yestStr, false) + buildCard('Today', now, todayStr, true);
 }
-function renderAll(){ renderStats(); renderCapTable(); renderTable(); renderYesterdayToday(); if(document.getElementById('view-calendar').classList.contains('active')) renderCalendar(); applyMoodTheme(); if(document.getElementById('f-date')){ const d=document.getElementById('f-date').value; updateTargetBadge(d); renderTodayTargetCard(d); } }
+function renderAll(){ renderStats(); renderCapTable(); renderTable(); renderYesterdayToday(); if(document.getElementById('view-calendar').classList.contains('active')) renderCalendar(); applyMoodTheme(); if(document.getElementById('f-date')){ const d=document.getElementById('f-date').value; updateTargetBadge(d); renderTodayTargetCard(d); updateMonthlyTargetCard(d); } }
 
 /* ── AUTO MOOD THEME (based on recent PnL + emotion tags) ── */
 const POSITIVE_EMOTIONS=['Calm','Confident','Disciplined','Patient','Focused'];
