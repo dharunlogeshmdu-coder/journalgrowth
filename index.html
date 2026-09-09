@@ -880,16 +880,37 @@ canvas{width:100%!important}
 <div class="login-overlay" id="login-overlay">
   <div class="login-card">
     <div class="login-title">Dharun <span style="color:var(--accent)">Records</span></div>
-    <div class="login-sub">Sign in to sync your journal to the cloud</div>
-    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" autocomplete="username"/></div>
-    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"/></div>
-    <div class="login-actions">
-      <button class="btn btn-primary" id="signin-btn" onclick="doSignIn()">Sign In</button>
-      <button class="btn btn-ghost" id="signup-btn" onclick="doSignUp()">Create Account</button>
+    <div class="login-sub" id="login-sub-text">Sign in to sync your journal to the cloud — same account on every device shows the same records</div>
+
+    <!-- SIGN IN MODE -->
+    <div id="signin-fields">
+      <div class="field"><label>Email ID</label><input type="email" id="login-email" placeholder="you@example.com" autocomplete="username"/></div>
+      <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"/></div>
+      <div class="login-actions">
+        <button class="btn btn-primary" id="signin-btn" onclick="doSignIn()">Sign In</button>
+      </div>
+      <div style="margin-top:10px;text-align:center">
+        <button type="button" onclick="setLoginMode('signup')" style="background:none;border:none;color:var(--muted);font-family:var(--font-m);font-size:10.5px;text-decoration:underline;cursor:pointer;padding:2px">New here? Create an account</button>
+      </div>
     </div>
+
+    <!-- CREATE ACCOUNT MODE -->
+    <div id="signup-fields" style="display:none">
+      <div class="field"><label>Name</label><input type="text" id="signup-name" placeholder="Your full name" autocomplete="name"/></div>
+      <div class="field"><label>Email ID</label><input type="email" id="signup-email" placeholder="you@example.com" autocomplete="username"/></div>
+      <div class="field"><label>Mobile No.</label><input type="tel" id="signup-mobile" placeholder="10-digit mobile number" autocomplete="tel"/></div>
+      <div class="field"><label>Password</label><input type="password" id="signup-pass" placeholder="min 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignUp()"/></div>
+      <div class="login-actions">
+        <button class="btn btn-primary" id="signup-btn" onclick="doSignUp()">Create Account</button>
+      </div>
+      <div style="margin-top:10px;text-align:center">
+        <button type="button" onclick="setLoginMode('signin')" style="background:none;border:none;color:var(--muted);font-family:var(--font-m);font-size:10.5px;text-decoration:underline;cursor:pointer;padding:2px">Already have an account? Sign In</button>
+      </div>
+    </div>
+
     <div class="login-error" id="login-error"></div>
     <div style="margin-top:10px;text-align:center">
-      <button type="button" onclick="document.getElementById('login-email').value='dharunlogeshmdu@gmail.com';document.getElementById('login-pass').focus()" style="background:none;border:none;color:var(--muted);font-family:var(--font-m);font-size:10.5px;text-decoration:underline;cursor:pointer;padding:2px">use admin email</button>
+      <button type="button" onclick="document.getElementById('login-email').value='dharunlogeshmdu@gmail.com';document.getElementById('login-pass').focus()" style="background:none;border:none;color:var(--muted);font-family:var(--font-m);font-size:10.5px;text-decoration:underline;cursor:pointer;padding:2px" id="use-admin-btn">use admin email</button>
     </div>
   </div>
 </div>
@@ -928,6 +949,17 @@ const ADMIN_EMAIL = 'dharunlogeshmdu@gmail.com';
 
 function showLoginOverlay(show){
   document.getElementById('login-overlay').style.display = show ? 'flex' : 'none';
+  if(show) setLoginMode('signin');
+}
+function setLoginMode(mode){
+  const isSignup = mode === 'signup';
+  document.getElementById('signin-fields').style.display = isSignup ? 'none' : '';
+  document.getElementById('signup-fields').style.display = isSignup ? '' : 'none';
+  document.getElementById('use-admin-btn').style.display = isSignup ? 'none' : '';
+  document.getElementById('login-sub-text').textContent = isSignup
+    ? 'Create an account so this same journal follows you to every device'
+    : 'Sign in to sync your journal to the cloud — same account on every device shows the same records';
+  loginError('');
 }
 function loginError(msg){
   const el = document.getElementById('login-error');
@@ -964,14 +996,25 @@ function setAuthButtonsBusy(busy){
   if(signUpBtn) signUpBtn.textContent = busy ? 'Please wait…' : 'Create Account';
 }
 async function doSignUp(){
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-pass').value;
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const mobile = document.getElementById('signup-mobile').value.trim();
+  const pass = document.getElementById('signup-pass').value;
   loginError('');
-  if(!email || !pass){ loginError('Enter an email and password (min 6 characters).'); return; }
+  if(!name){ loginError('Enter your name.'); return; }
+  if(!email || !pass){ loginError('Enter an email ID and password (min 6 characters).'); return; }
+  if(!mobile || mobile.replace(/\D/g,'').length < 10){ loginError('Enter a valid 10-digit mobile number.'); return; }
   if(pass.length < 6){ loginError('Password must be at least 6 characters.'); return; }
   setAuthButtonsBusy(true);
   try{
-    await auth.createUserWithEmailAndPassword(email, pass);
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    await db.collection('users').doc(cred.user.uid).set({
+      name: name,
+      email: email,
+      mobile: mobile,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
+    try{ await cred.user.updateProfile({displayName:name}); }catch(_e){}
   }catch(e){
     console.error('Sign up failed', e);
     loginError(friendlyAuthError(e));
