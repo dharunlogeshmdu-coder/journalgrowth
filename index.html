@@ -487,6 +487,7 @@ canvas{width:100%!important}
     <button class="btn-ai" onclick="toggleAI()">🤖 AI Advisor</button>
     <button class="btn-pdf" onclick="downloadPDF()">⬇ PDF Report</button>
     <span class="badge" id="cloud-status" title="Cloud sync status">☁ …</span>
+    <span class="badge" id="admin-badge" title="Signed in as the admin account" style="display:none;background:var(--gold-dim);color:var(--gold);border-color:var(--gold)">★ ADMIN</span>
     <button class="btn-pdf" id="signout-btn" onclick="doSignOut()" style="display:none">Sign out</button>
   </div>
 </header>
@@ -881,12 +882,15 @@ canvas{width:100%!important}
     <div class="login-title">Dharun <span style="color:var(--accent)">Records</span></div>
     <div class="login-sub">Sign in to sync your journal to the cloud</div>
     <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" autocomplete="username"/></div>
-    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"/></div>
+    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"/></div>
     <div class="login-actions">
-      <button class="btn btn-primary" onclick="doSignIn()">Sign In</button>
-      <button class="btn btn-ghost" onclick="doSignUp()">Create Account</button>
+      <button class="btn btn-primary" id="signin-btn" onclick="doSignIn()">Sign In</button>
+      <button class="btn btn-ghost" id="signup-btn" onclick="doSignUp()">Create Account</button>
     </div>
     <div class="login-error" id="login-error"></div>
+    <div style="margin-top:10px;text-align:center">
+      <button type="button" onclick="document.getElementById('login-email').value='dharunlogeshmdu@gmail.com';document.getElementById('login-pass').focus()" style="background:none;border:none;color:var(--muted);font-family:var(--font-m);font-size:10.5px;text-decoration:underline;cursor:pointer;padding:2px">use admin email</button>
+    </div>
   </div>
 </div>
 
@@ -920,6 +924,8 @@ let cloudUser = null;
 let cloudReady = false;
 let cloudSaveTimer = null;
 
+const ADMIN_EMAIL = 'dharunlogeshmdu@gmail.com';
+
 function showLoginOverlay(show){
   document.getElementById('login-overlay').style.display = show ? 'flex' : 'none';
 }
@@ -928,28 +934,78 @@ function loginError(msg){
   el.textContent = msg || '';
   el.style.display = msg ? 'block' : 'none';
 }
-function doSignUp(){
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  if(!email || !pass){ loginError('Enter an email and password (min 6 characters).'); return; }
-  auth.createUserWithEmailAndPassword(email, pass).catch(e=>loginError(e.message));
+function friendlyAuthError(e){
+  const code = e && e.code ? e.code : '';
+  if(code === 'auth/operation-not-allowed'){
+    return 'Email/Password sign-in is not enabled on this Firebase project yet. In the Firebase console go to Authentication → Sign-in method → enable "Email/Password", then try again.';
+  }
+  if(code === 'auth/email-already-in-use'){
+    return 'An account with this email already exists — use "Sign In" instead of "Create Account".';
+  }
+  if(code === 'auth/weak-password'){
+    return 'Password must be at least 6 characters.';
+  }
+  if(code === 'auth/invalid-email'){
+    return 'That email address looks invalid — double-check it.';
+  }
+  if(code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential'){
+    return 'No account matches that email/password. If this is your first time here, tap "Create Account".';
+  }
+  if(code === 'auth/network-request-failed'){
+    return 'Network error reaching Firebase — check your connection and try again.';
+  }
+  return (e && e.message) ? e.message : 'Something went wrong. Please try again.';
 }
-function doSignIn(){
+function setAuthButtonsBusy(busy){
+  const signInBtn = document.getElementById('signin-btn');
+  const signUpBtn = document.getElementById('signup-btn');
+  if(signInBtn) signInBtn.disabled = busy;
+  if(signUpBtn) signUpBtn.disabled = busy;
+  if(signUpBtn) signUpBtn.textContent = busy ? 'Please wait…' : 'Create Account';
+}
+async function doSignUp(){
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
+  loginError('');
+  if(!email || !pass){ loginError('Enter an email and password (min 6 characters).'); return; }
+  if(pass.length < 6){ loginError('Password must be at least 6 characters.'); return; }
+  setAuthButtonsBusy(true);
+  try{
+    await auth.createUserWithEmailAndPassword(email, pass);
+  }catch(e){
+    console.error('Sign up failed', e);
+    loginError(friendlyAuthError(e));
+  }finally{
+    setAuthButtonsBusy(false);
+  }
+}
+async function doSignIn(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  loginError('');
   if(!email || !pass){ loginError('Enter an email and password.'); return; }
-  auth.signInWithEmailAndPassword(email, pass).catch(e=>loginError(e.message));
+  setAuthButtonsBusy(true);
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+  }catch(e){
+    console.error('Sign in failed', e);
+    loginError(friendlyAuthError(e));
+  }finally{
+    setAuthButtonsBusy(false);
+  }
 }
 function doSignOut(){ auth.signOut(); }
 
 auth.onAuthStateChanged(async function(user){
   const statusEl = document.getElementById('cloud-status');
   const signoutBtn = document.getElementById('signout-btn');
+  const adminBadge = document.getElementById('admin-badge');
   if(user){
     cloudUser = user;
     loginError('');
     showLoginOverlay(false);
     if(signoutBtn) signoutBtn.style.display = '';
+    if(adminBadge) adminBadge.style.display = (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? '' : 'none';
     if(statusEl) statusEl.textContent = '☁ syncing…';
     await cloudLoad();
     cloudReady = true;
@@ -958,6 +1014,7 @@ auth.onAuthStateChanged(async function(user){
     cloudUser = null;
     cloudReady = false;
     if(signoutBtn) signoutBtn.style.display = 'none';
+    if(adminBadge) adminBadge.style.display = 'none';
     if(statusEl) statusEl.textContent = '☁ signed out';
     showLoginOverlay(true);
   }
